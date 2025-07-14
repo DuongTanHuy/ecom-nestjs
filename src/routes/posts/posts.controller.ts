@@ -1,5 +1,5 @@
 import { Body, Controller, Delete, Get, Param, Post, Put } from '@nestjs/common'
-import { PostsService } from 'src/posts/posts.service'
+import { PostsService } from 'src/routes/posts/posts.service'
 
 @Controller('posts')
 export class PostsController {
@@ -12,8 +12,7 @@ export class PostsController {
 
   @Post()
   createPost(@Body() { title, content }: { title: string; content: string }) {
-    const result = this.postsService.createPost({ title, content })
-    return { message: 'Post created successfully', post: result }
+    return this.postsService.createPost({ title, content })
   }
 
   @Get(':id')

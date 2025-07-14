@@ -1,20 +1,29 @@
 import { Injectable } from '@nestjs/common'
+import { PrismaService } from 'src/shared/services/prisma.service'
 
 @Injectable()
 export class PostsService {
+  constructor(private readonly prismaService: PrismaService) {}
+
   private posts = [
     { id: 1, title: 'First Post', content: 'This is the content of the first post.' },
     { id: 2, title: 'Second Post', content: 'This is the content of the second post.' }
   ]
 
   getPosts() {
-    return this.posts
+    return this.prismaService.post.findMany()
   }
 
   createPost({ title, content }: { title: string; content: string }) {
     const newPost = { id: this.posts.length + 1, title, content }
     this.posts.push(newPost)
-    return newPost
+    return this.prismaService.post.create({
+      data: {
+        title,
+        content,
+        authorId: 1
+      }
+    })
   }
 
   getPostDetail(id: string) {
