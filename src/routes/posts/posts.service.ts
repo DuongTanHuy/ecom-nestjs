@@ -1,4 +1,6 @@
 import { Injectable } from '@nestjs/common'
+import { CreatePostDto } from 'src/routes/posts/dto/create-post.dto'
+import { UpdatePostDto } from 'src/routes/posts/dto/update-post.dto'
 import { PrismaService } from 'src/shared/services/prisma.service'
 
 @Injectable()
@@ -10,44 +12,88 @@ export class PostsService {
     { id: 2, title: 'Second Post', content: 'This is the content of the second post.' }
   ]
 
-  getPosts() {
-    return this.prismaService.post.findMany()
+  getPosts(userId: number) {
+    return this.prismaService.post.findMany({
+      where: {
+        authorId: userId
+      },
+      include: {
+        author: {
+          omit: {
+            password: true
+          }
+        }
+      }
+    })
   }
 
-  createPost({ title, content }: { title: string; content: string }) {
+  createPost({ createPostDto: { title, content }, userId }: { createPostDto: CreatePostDto; userId: number }) {
     const newPost = { id: this.posts.length + 1, title, content }
     this.posts.push(newPost)
     return this.prismaService.post.create({
       data: {
         title,
         content,
-        authorId: 1
+        authorId: userId
+      },
+      include: {
+        author: {
+          omit: {
+            password: true
+          }
+        }
       }
     })
   }
 
-  getPostDetail(id: string) {
-    const post = this.posts.find((post) => String(post.id) === id)
-    if (!post) {
-      throw new Error('Post not found')
-    }
-    return post
+  getPostDetail(id: number) {
+    return this.prismaService.post.findUniqueOrThrow({
+      where: {
+        id
+      },
+      include: {
+        author: {
+          omit: {
+            password: true
+          }
+        }
+      }
+    })
   }
-  updatePost({ id, title, content }: { id: string; title: string; content: string }) {
-    const postIndex = this.posts.findIndex((post) => String(post.id) === id)
-    if (postIndex === -1) {
-      throw new Error('Post not found')
-    }
-    const updatedPost = { ...this.posts[postIndex], title, content }
-    this.posts[postIndex] = updatedPost
-    return updatedPost
+  updatePost({
+    userId,
+    id,
+    updatePostDto: { title, content }
+  }: {
+    userId: number
+    id: number
+    updatePostDto: UpdatePostDto
+  }) {
+    return this.prismaService.post.update({
+      where: {
+        authorId: userId,
+        id
+      },
+      data: {
+        title,
+        content
+      },
+      include: {
+        author: {
+          omit: {
+            password: true
+          }
+        }
+      }
+    })
   }
 
-  deletePost(id: string) {
-    const postIndex = this.posts.findIndex((post) => String(post.id) === id)
-    if (postIndex === -1) {
-      throw new Error('Post not found')
-    }
-    this.posts.splice(postIndex, 1)
+  deletePost(userId: number, id: number) {
+    return this.prismaService.post.delete({
+      where: {
+        authorId: userId,
+        id
+      }
+    })
   }
 }

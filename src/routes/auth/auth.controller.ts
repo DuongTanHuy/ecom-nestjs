@@ -3,6 +3,8 @@ import { AuthService } from './auth.service'
 import {
   LoginBodyDTO,
   LoginResDTO,
+  LogoutBodyDTO,
+  LogoutResDTO,
   RefreshTokenBodyDTO,
   RefreshTokenResDTO,
   RegisterBodyDto,
@@ -31,10 +33,17 @@ export class AuthController {
     return new LoginResDTO(result)
   }
 
+  @Post('logout')
+  async logout(@Body() logoutBodyDto: LogoutBodyDTO) {
+    const result = await this.authService.logout(logoutBodyDto)
+
+    return new LogoutResDTO(result)
+  }
+
   @HttpCode(HttpStatus.OK)
   @Post('refresh-token')
-  async refreshToken(@Body() body: RefreshTokenBodyDTO) {
-    const result = await this.authService.refreshToken(body.refreshToken)
+  async refreshToken(@Body() refreshTokenBodyDto: RefreshTokenBodyDTO) {
+    const result = await this.authService.refreshToken(refreshTokenBodyDto.refreshToken)
 
     return new RefreshTokenResDTO(result)
   }

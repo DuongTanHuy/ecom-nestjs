@@ -1,11 +1,15 @@
 import { Exclude, Type } from 'class-transformer'
-import { IsEmail, IsString } from 'class-validator'
+import { IsEmail, IsString, Length } from 'class-validator'
+import { Match } from 'src/shared/decorators/validator.decorator'
 
 export class LoginBodyDTO {
   @IsEmail()
   email: string
 
   @IsString()
+  @Length(6, 20, {
+    message: 'Password must be from 6 to 20 characters'
+  })
   password: string
 }
 
@@ -23,6 +27,7 @@ export class RegisterBodyDto extends LoginBodyDTO {
   name: string
 
   @IsString()
+  @Match('password')
   confirm_password: string
 }
 
@@ -92,3 +97,14 @@ export class RefreshTokenBodyDTO {
 }
 
 export class RefreshTokenResDTO extends LoginResDTO {}
+
+export class LogoutBodyDTO extends RefreshTokenBodyDTO {}
+
+export class LogoutResDTO {
+  @IsString()
+  message: string
+
+  constructor(partial?: Partial<LogoutResDTO>) {
+    Object.assign(this, partial)
+  }
+}

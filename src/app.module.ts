@@ -8,7 +8,7 @@ import { AuthModule } from './routes/auth/auth.module'
 import { APP_INTERCEPTOR } from '@nestjs/core'
 
 @Module({
-  imports: [SharedModule, PostsModule, AuthModule],
+  imports: [PostsModule, SharedModule, AuthModule],
   controllers: [AppController],
   providers: [
     AppService,

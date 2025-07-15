@@ -1,5 +1,4 @@
 /* eslint-disable @typescript-eslint/only-throw-error */
-/* eslint-disable @typescript-eslint/no-unsafe-assignment */
 
 import { plainToInstance } from 'class-transformer'
 import { IsString, validateSync } from 'class-validator'
@@ -35,6 +34,9 @@ class ConfigSchema {
 
   @IsString()
   REFRESH_TOKEN_EXPIRES_IN: string
+
+  @IsString()
+  SECRET_KEY: string
 }
 
 const configServer = plainToInstance(ConfigSchema, process.env, {

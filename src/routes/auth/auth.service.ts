@@ -1,6 +1,6 @@
 import { ConflictException, Injectable, UnauthorizedException, UnprocessableEntityException } from '@nestjs/common'
-import { Prisma } from 'generated/prisma'
-import { LoginBodyDTO, RegisterBodyDto } from 'src/routes/auth/dto/auth.dto'
+import { LoginBodyDTO, LogoutBodyDTO, RegisterBodyDto } from 'src/routes/auth/dto/auth.dto'
+import { isNotFoundPrismaError, isUniqueConstraintPrismaError } from 'src/shared/helpers'
 import { PrismaService } from 'src/shared/services/prisma.service'
 import { SharedService } from 'src/shared/services/shared.service'
 import { TokenService } from 'src/shared/services/token.service'
@@ -51,7 +51,7 @@ export class AuthService {
       return this.signTokens({ userId })
     } catch (error) {
       console.log(error)
-      if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === 'P2025') {
+      if (isNotFoundPrismaError(error)) {
         throw new UnauthorizedException('Refresh token is not exist and may be published!')
       }
       throw new UnauthorizedException('Refresh token is invalid!')
@@ -72,7 +72,7 @@ export class AuthService {
       return newUser
     } catch (error) {
       console.log(error)
-      if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === 'P2002') {
+      if (isUniqueConstraintPrismaError(error)) {
         throw new ConflictException('Email already exist!')
       }
     }
@@ -101,5 +101,27 @@ export class AuthService {
     const tokens = await this.signTokens({ userId: userExist.id })
 
     return tokens
+  }
+
+  async logout({ refreshToken }: LogoutBodyDTO) {
+    try {
+      await this.tokenService.verifyRefreshToken(refreshToken)
+
+      await this.prismaService.refreshToken.delete({
+        where: {
+          token: refreshToken
+        }
+      })
+
+      return {
+        message: 'Logout successfully'
+      }
+    } catch (error) {
+      console.log(error)
+      if (isNotFoundPrismaError(error)) {
+        throw new UnauthorizedException('Refresh token is not exist and may be published!')
+      }
+      throw new UnauthorizedException('Refresh token is invalid!')
+    }
   }
 }
